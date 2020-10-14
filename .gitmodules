@@ -1,0 +1,9 @@
+[submodule "logger"]
+	path = logger
+	url = https://github.com/MakeDUMP/logger.git
+[submodule "curl"]
+	path = curl
+	url = https://github.com/curl/curl.git
+[submodule "property_tree"]
+	path = property_tree
+	url = https://github.com/boostorg/property_tree.git

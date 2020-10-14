@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"C_Cpp.default.cppStandard": "gnu++17",
+		"C_Cpp.default.cStandard": "gnu18",
+		"C_Cpp.clang_format_style": "WebKit",
+		"C_Cpp.clang_format_sortIncludes": true,
+		"C_Cpp.default.intelliSenseMode": "gcc-x64",
+		"C_Cpp.autoAddFileAssociations": false,
+		"C_Cpp.default.compilerArgs": [],
+		"C_Cpp.default.defines": [],
+		"C_Cpp.default.includePath": [
+			"logger/src",
+			"curl/include",
+			"property_tree/include"
+		],
+	}
+}
