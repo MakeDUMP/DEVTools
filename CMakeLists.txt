@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON) # -fPIC
 set_target_properties(${PROJECT_NAME} PROPERTIES BUILD_RPATH ".")
+# set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 # --[ Flags, Options, Defines ] -----------------------------------------------
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror)

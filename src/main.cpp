@@ -42,20 +42,26 @@ try {
     makedump::logger logger { makedump::logger::format("{white+}", ">>>") };
 
     // test curl
-    logger.println("Curl Version: {yellow}", curl_version());
-    std::shared_ptr<CURL> curl { curl_easy_init(), curl_easy_cleanup };
-    if (curl.get() == nullptr)
-        throw std::runtime_error("Not make `curl` object");
-    auto url = "http://repo.msys2.org/msys/x86_64/msys.db.tar.gz";
-    auto data = get_file(curl, url);
-    logger.println("Get from {green} {yellow} bytes", url, data.size());
+    // logger.println("Curl Version: {yellow}", curl_version());
+    // std::shared_ptr<CURL> curl { curl_easy_init(), curl_easy_cleanup };
+    // if (curl.get() == nullptr)
+    //     throw std::runtime_error("Not make `curl` object");
+    // auto url = "http://repo.msys2.org/msys/x86_64/msys.db.tar.gz";
+    // auto data = get_file(curl, url);
+    // logger.println("Get from {green} {yellow} bytes", url, data.size());
 
     // test reading from ini file
     boost::property_tree::ptree ini;
     boost::property_tree::read_ini("../settings/test.ini", ini);
-    logger.println("Section13.Param  <string> = {cyan+}", ini.get<std::string>("Section13.Param", ""));
-    logger.println("Section14.Param1 <int>    = {cyan+}", ini.get<int>("Section14.Param1", 0));
-    logger.println("Section14.Param2 <double> = {cyan+}", ini.get<double>("Section14.Param2", .0));
+    for (auto& key : ini) {
+        if (key.first == "Repositories")
+            continue;
+        logger.println("{}", key.first);
+    }
+
+    // logger.println("Section13.Param  <string> = {cyan+}", ini.get<std::string>("Section13.Param", ""));
+    // logger.println("Section14.Param1 <int>    = {cyan+}", ini.get<int>("Section14.Param1", 0));
+    // logger.println("Section14.Param2 <double> = {cyan+}", ini.get<double>("Section14.Param2", .0));
 
     return EXIT_SUCCESS;
 } catch (std::exception const& e) {
