@@ -1,16 +1,22 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <curl/curl.h>
+#include <filesystem>
 #include <logger.hpp>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 ///
-/// Download any file from the Internet, using CURL library
+/// Download any file from the Internet
 ///
-auto get_file(std::shared_ptr<CURL> const& curl, std::string const& url) -> std::vector<uint8_t>
+auto get_file(std::string const& url) -> std::vector<uint8_t>
 {
+    std::shared_ptr<CURL> curl { curl_easy_init(), curl_easy_cleanup };
+    if (curl.get() == nullptr)
+        throw std::runtime_error("Not make `curl` object");
+
     curl_easy_setopt(curl.get(), CURLOPT_URL, url.c_str()); // download page URL
     curl_easy_setopt(curl.get(), CURLOPT_SSL_VERIFYPEER, false);
 
@@ -40,28 +46,37 @@ auto get_file(std::shared_ptr<CURL> const& curl, std::string const& url) -> std:
 auto main() -> int
 try {
     makedump::logger logger { makedump::logger::format("{white+}", ">>>") };
+    logger.println("Curl Version: {yellow}", curl_version());
 
-    // test curl
-    // logger.println("Curl Version: {yellow}", curl_version());
-    // std::shared_ptr<CURL> curl { curl_easy_init(), curl_easy_cleanup };
-    // if (curl.get() == nullptr)
-    //     throw std::runtime_error("Not make `curl` object");
-    // auto url = "http://repo.msys2.org/msys/x86_64/msys.db.tar.gz";
-    // auto data = get_file(curl, url);
-    // logger.println("Get from {green} {yellow} bytes", url, data.size());
-
-    // test reading from ini file
+    //reading from ini file
     boost::property_tree::ptree ini;
-    boost::property_tree::read_ini("../settings/test.ini", ini);
-    for (auto& key : ini) {
-        if (key.first == "Repositories")
+    boost::property_tree::read_ini("../settings/minimal.ini", ini);
+
+    // find all not empty repositories
+    for (auto const& repo : ini.get_child("Repositories")) {
+        auto const& repo_name = repo.first;
+        auto repo_url = repo.second.get_value(std::string {});
+        if (repo_name.empty() || repo_url.empty())
             continue;
-        logger.println("{}", key.first);
+
+        logger.print("Get database for {yellow+} repository ...", repo_name);
+        auto db_tar_gz = get_file(repo_url + '/' + repo_name + ".db.tar.gz");
+        logger.println("{yellow+} bytes", db_tar_gz.size());
+
+        // find all not empty packages
+        // for (auto const& pkg : ini.get_child(repo_name)) {
+        //     auto const& pkg_name = pkg.first;
+        //     auto pkg_files = pkg.second.get_value(std::string {});
+        //     if (pkg_name.empty() || pkg_files.empty())
+        //         continue;
+        //     logger.println("{} -> {}", pkg_name, pkg_files);
+        // }
     }
 
-    // logger.println("Section13.Param  <string> = {cyan+}", ini.get<std::string>("Section13.Param", ""));
-    // logger.println("Section14.Param1 <int>    = {cyan+}", ini.get<int>("Section14.Param1", 0));
-    // logger.println("Section14.Param2 <double> = {cyan+}", ini.get<double>("Section14.Param2", .0));
+    // https://github.com/nmoinvaz/minizip
+    // https://github.com/rxi/microtar
+
+    // mingw-w64-x86_64-*-\\d
 
     return EXIT_SUCCESS;
 } catch (std::exception const& e) {
