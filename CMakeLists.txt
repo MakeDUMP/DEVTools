@@ -47,5 +47,8 @@ string(REGEX REPLACE "(set\\(CURL_LIBS \\\${CURL_LIBS} \"crypt32)\"\\)" "\\1;ws2
 file(WRITE "curl/CMakeLists.txt" "${FILE}")
 add_subdirectory(curl)
 execute_process(COMMAND cmake -E copy ${CMAKE_CURRENT_BINARY_DIR}/CMakeLists.bak ${CMAKE_CURRENT_LIST_DIR}/curl/CMakeLists.txt)
-
 target_link_libraries(${PROJECT_NAME} libcurl)
+
+# --[ Third Party Libraries ] -------------------------------------------------
+add_subdirectory(third_party_libs)
+target_link_libraries(${PROJECT_NAME} zlib microtar)

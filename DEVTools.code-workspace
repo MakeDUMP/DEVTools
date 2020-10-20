@@ -12,11 +12,17 @@
 		"C_Cpp.default.intelliSenseMode": "gcc-x64",
 		"C_Cpp.autoAddFileAssociations": false,
 		"C_Cpp.default.compilerArgs": [],
-		"C_Cpp.default.defines": [],
+		"C_Cpp.default.defines": [
+			"_LARGEFILE64_SOURCE",
+			"Z_HAVE_UNISTD_H",
+			"ZLIB_CONST"
+		],
 		"C_Cpp.default.includePath": [
 			"logger/src",
 			"curl/include",
-			"property_tree/include"
+			"property_tree/include",
+			"third_party_libs/zlib",
+			"third_party_libs/microtar"
 		],
 	}
 }
