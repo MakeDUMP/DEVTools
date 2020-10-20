@@ -5,6 +5,7 @@
 #include <logger.hpp>
 #include <memory>
 #include <microtar.h>
+#include <regex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -100,29 +101,35 @@ try {
             mtar_next(&tar);
         }
 
-        for (auto value = file_names.begin(); value < file_names.begin() + 4; value++)
-            logger.println("{}", *value);
-
-        // mtar_find(&tar, "test.txt", &h);
-        // p = calloc(1, h.size + 1);
-        // mtar_read_data(&tar, p, h.size);
-        // printf("%s", p);
-        // free(p);
-
         // find all not empty packages
-        // for (auto const& pkg : ini.get_child(repo_name)) {
-        //     auto const& pkg_name = pkg.first;
-        //     auto pkg_files = pkg.second.get_value(std::string {});
-        //     if (pkg_name.empty() || pkg_files.empty())
-        //         continue;
-        //     logger.println("{} -> {}", pkg_name, pkg_files);
-        // }
-    }
+        std::regex file_regex {};
+        for (auto const& pkg : ini.get_child(repo_name)) {
+            auto const& pkg_name = pkg.first;
+            auto pkg_files = pkg.second.get_value(std::string {});
+            if (pkg_name.empty() || pkg_files.empty())
+                continue;
+            // logger.println("RegEx: {}", ((repo_name == "mingw64") ? "mingw-w64-x86_64-" : "") + pkg_name + ".*");
+            file_regex = ((repo_name == "mingw64") ? "mingw-w64-x86_64-" : "") + pkg_name + ".*";
 
-    // mingw-w64-x86_64-*-\\d
+            auto found = std::find_if(file_names.cbegin(), file_names.cend(), [&file_regex, &logger](std::string const& value) {
+                auto result = std::regex_match(value, file_regex);
+                return result;
+            });
+            if (found == file_names.cend())
+                throw std::runtime_error("Not found `" + pkg_name + "` file in database");
+            else
+                logger.println("Found {green+} file in database", *found);
+        }
+    }
 
     return EXIT_SUCCESS;
 } catch (std::exception const& e) {
     makedump::logger {}.println("{red+}: {}", "ERROR", e.what());
     return EXIT_FAILURE;
 }
+
+// mtar_find(&tar, "test.txt", &h);
+// p = calloc(1, h.size + 1);
+// mtar_read_data(&tar, p, h.size);
+// printf("%s", p);
+// free(p);
