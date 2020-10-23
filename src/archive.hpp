@@ -44,7 +44,7 @@ inline auto gzip_unpack(std::vector<uint8_t>& raw_gzip) -> std::vector<uint8_t>
 ///
 /// Get file list from TAR byte array
 ///
-inline auto tar_get_files(std::vector<uint8_t>& raw_tar)
+inline auto tar_get_file_list(std::vector<uint8_t>& raw_tar) -> std::vector<std::string>
 {
     auto tar = mtar_t {};
     auto tar_hdr = mtar_header_t {};
@@ -62,6 +62,29 @@ inline auto tar_get_files(std::vector<uint8_t>& raw_tar)
         result.emplace_back(tar_hdr.name);
         mtar_next(&tar);
     }
+
+    return result;
+}
+
+///
+/// Get file list from TAR byte array
+///
+inline auto tar_get_file(std::vector<uint8_t>& raw_tar, std::string const& name) -> std::vector<uint8_t>
+{
+    auto tar = mtar_t {};
+    auto tar_hdr = mtar_header_t {};
+
+    tar.stream = raw_tar.data();
+    tar.seek = [](mtar_t*, unsigned) -> int { return MTAR_ESUCCESS; };
+    tar.close = [](mtar_t*) -> int { return MTAR_ESUCCESS; };
+    tar.read = [](mtar_t* tar, void* data, unsigned size) -> int {
+        std::memcpy(data, reinterpret_cast<uint8_t*>(tar->stream) + tar->pos, size);
+        return MTAR_ESUCCESS;
+    };
+
+    mtar_find(&tar, name.c_str(), &tar_hdr);
+    auto result = std::vector<uint8_t>(tar_hdr.size);
+    mtar_read_data(&tar, result.data(), tar_hdr.size);
 
     return result;
 }

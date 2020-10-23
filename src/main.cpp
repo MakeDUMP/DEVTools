@@ -35,24 +35,32 @@ try {
         auto db_tar = archive::gzip_unpack(db_tar_gz);
         logger.println("{green+} bytes", db_tar.size());
 
-        auto pkg_names = archive::tar_get_files(db_tar);
+        auto pkg_names = archive::tar_get_file_list(db_tar);
 
         // find all not empty packages
-        std::regex file_regex {};
         for (auto const& pkg : ini.get_child(repo_name)) {
             auto const& pkg_name = pkg.first;
             auto pkg_files = pkg.second.get_value(std::string {});
-            if (pkg_name.empty() || pkg_files.empty())
+            if (pkg_name.empty() || pkg_files.empty()) // skip empty
                 continue;
-            file_regex = ((repo_name == "mingw64") ? "mingw-w64-x86_64-" : "") + pkg_name + ".*";
 
-            auto found = std::find_if(pkg_names.cbegin(), pkg_names.cend(), [&file_regex, &logger](std::string const& value) {
-                return std::regex_match(value, file_regex);
+            // find package name in database of repository
+            auto found = std::find_if(pkg_names.cbegin(), pkg_names.cend(), [&repo_name, &pkg_name](std::string const& value) {
+                return std::regex_match(value, std::regex { ((repo_name == "mingw64") ? "mingw-w64-x86_64-" : "") + pkg_name + ".*/desc" });
             });
             if (found == pkg_names.cend())
                 throw std::runtime_error("Not found `" + pkg_name + "` file in database");
-            else
-                logger.println("Found {blue+} file in database", *found);
+
+            // get a description of the found package
+            auto pkg_desc_raw = archive::tar_get_file(db_tar, *found);
+            auto pkg_desc = std::string(pkg_desc_raw.cbegin(), pkg_desc_raw.cend());
+
+            // get the full name of the found package
+            std::smatch match;
+            if (std::regex_search(pkg_desc, match, std::regex { "%FILENAME%\n(.*)\n" }) == false)
+                throw std::runtime_error("Not found `" + pkg_name + "` file name in descriptor file");
+            auto pkg_file_name = match.str(1);
+            logger.println("Found package {blue+} in database", pkg_file_name);
         }
     }
 
@@ -61,9 +69,3 @@ try {
     makedump::logger {}.println("{red+}: {}", "ERROR", e.what());
     return EXIT_FAILURE;
 }
-
-// mtar_find(&tar, "test.txt", &h);
-// p = calloc(1, h.size + 1);
-// mtar_read_data(&tar, p, h.size);
-// printf("%s", p);
-// free(p);
