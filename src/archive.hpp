@@ -1,5 +1,6 @@
 #pragma once
 #include <cstring>
+#include <lzma.h>
 #include <microtar.h>
 #include <stdexcept>
 #include <string>
@@ -38,6 +39,43 @@ inline auto gzip_unpack(std::vector<uint8_t>& raw_gzip) -> std::vector<uint8_t>
 
     if (z_result != Z_STREAM_END)
         throw std::runtime_error { "GZIP " + std::string(zstream.msg) };
+    return result;
+}
+
+///
+/// Unpack XZ byte array
+///
+inline auto xz_unpack(std::vector<uint8_t>& raw_xz) -> std::vector<uint8_t>
+{
+    CXzUnpacker xz_stream {};
+    XzUnpacker_Init(&xz_stream);
+    CrcGenerateTable();
+    Crc64GenerateTable();
+
+    const ISzAlloc xz_alloc = {
+        [](ISzAllocPtr, size_t size) { return malloc(size); },
+        [](ISzAllocPtr, void* address) { free(address); }
+    };
+    XzUnpacker_Construct(&xz_stream, &xz_alloc);
+
+    constexpr size_t block_size = 64 * 1024; // 1 << 20; // 1 Mb
+    auto buffer = std::array<uint8_t, block_size> {};
+    auto result = std::vector<uint8_t> {}; // result array
+    auto xz_result = SZ_OK;
+    auto xz_status = ECoderStatus {};
+    auto raw_xz_start = raw_xz.data();
+    auto raw_xz_size = raw_xz.size();
+    do {
+        auto buffer_size = buffer.size();
+        auto in_size = raw_xz_size;
+        xz_result = XzUnpacker_Code(&xz_stream, buffer.data(), &buffer_size,
+            raw_xz_start, &in_size, (in_size == 0), CODER_FINISH_ANY, &xz_status);
+        result.insert(result.cend(), buffer.cbegin(), buffer.cbegin() + buffer_size);
+        raw_xz_start += in_size;
+        raw_xz_size -= in_size;
+    } while (xz_result == SZ_OK && xz_status == CODER_STATUS_NOT_FINISHED);
+
+    XzUnpacker_Free(&xz_stream);
     return result;
 }
 

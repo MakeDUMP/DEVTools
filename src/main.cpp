@@ -40,7 +40,7 @@ try {
         // find all not empty packages
         for (auto const& pkg : ini.get_child(repo_name)) {
             auto const& pkg_name = pkg.first;
-            auto pkg_files = pkg.second.get_value(std::string {});
+            auto const& pkg_files = pkg.second.get_value(std::string {});
             if (pkg_name.empty() || pkg_files.empty()) // skip empty
                 continue;
 
@@ -60,7 +60,16 @@ try {
             if (std::regex_search(pkg_desc, match, std::regex { "%FILENAME%\n(.*)\n" }) == false)
                 throw std::runtime_error("Not found `" + pkg_name + "` file name in descriptor file");
             auto pkg_file_name = match.str(1);
-            logger.println("Found package {blue+} in database", pkg_file_name);
+
+            // get package
+            logger.print("Get package {blue+} ...", pkg_file_name);
+            auto pkg_archive = curl::get_file(repo_url + '/' + pkg_file_name);
+            logger.print("{green} ->", pkg_archive.size());
+            auto pkg_tar = (pkg_file_name.rfind(".xz") != std::string::npos) ? archive::xz_unpack(pkg_archive) : archive::gzip_unpack(pkg_archive);
+            logger.println("{green+} bytes", pkg_tar.size());
+            auto file_names = archive::tar_get_file_list(pkg_tar);
+            for (auto value = file_names.begin(); value < file_names.begin() + 4; value++)
+                logger.println("{}", *value);
         }
     }
 

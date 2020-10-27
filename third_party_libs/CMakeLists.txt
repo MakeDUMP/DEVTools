@@ -22,5 +22,15 @@ add_library(${PROJECT_NAME} STATIC ${SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE 1)
 set_target_properties(${PROJECT_NAME} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}>")
 
+# --[ LZMA ] ------------------------------------------------------------------
+# get SDK from https://www.7-zip.org/sdk.html
+project(lzma LANGUAGES C)
+# set(CMAKE_VERBOSE_MAKEFILE ON)
+file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/*.c)
+add_library(${PROJECT_NAME} STATIC ${SOURCES})
+set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "_7ZIP_ST")
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE 1)
+set_target_properties(${PROJECT_NAME} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}>")
+
 # --[ ZStd ] ------------------------------------------------------------------
 # get sources from https://github.com/facebook/zstd

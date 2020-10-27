@@ -51,4 +51,4 @@ target_link_libraries(${PROJECT_NAME} libcurl)
 
 # --[ Third Party Libraries ] -------------------------------------------------
 add_subdirectory(third_party_libs)
-target_link_libraries(${PROJECT_NAME} zlib microtar)
+target_link_libraries(${PROJECT_NAME} zlib microtar lzma)

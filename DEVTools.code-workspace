@@ -15,14 +15,41 @@
 		"C_Cpp.default.defines": [
 			"_LARGEFILE64_SOURCE",
 			"Z_HAVE_UNISTD_H",
-			"ZLIB_CONST"
+			"ZLIB_CONST",
+			"_7ZIP_ST"
 		],
 		"C_Cpp.default.includePath": [
 			"logger/src",
 			"curl/include",
 			"property_tree/include",
 			"third_party_libs/zlib",
-			"third_party_libs/microtar"
+			"third_party_libs/microtar",
+			"third_party_libs/lzma"
 		],
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Debug",
+				"type": "cppdbg",
+				"request": "launch",
+				"program": "${workspaceFolder}\\.build\\devtools.exe",
+				"args": [],
+				"stopAtEntry": false,
+				"cwd": "${workspaceFolder}\\.build",
+				"environment": [],
+				"externalConsole": false,
+				"MIMode": "gdb",
+				"miDebuggerPath": "C:\\DEVToolKit\\mingw64\\bin\\gdb.exe",
+				"setupCommands": [
+					{
+						"description": "Включить автоматическое форматирование для gdb",
+						"text": "-enable-pretty-printing",
+						"ignoreFailures": true
+					}
+				]
+			}
+		]
 	}
 }
